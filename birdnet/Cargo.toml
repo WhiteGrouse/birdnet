@@ -1,0 +1,12 @@
+[package]
+name = "birdnet"
+version = "0.1.0"
+authors = ["WhiteGrouse <39170892+WhiteGrouse@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies]
+strum = "0.18.0"
+strum_macros = "0.18.0"
+futures = "0.3.4"
+async-std = "1.6.2"
+birdnet-binary = { path = "../birdnet-binary" }
