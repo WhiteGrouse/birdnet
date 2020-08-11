@@ -8,5 +8,9 @@ edition = "2018"
 strum = "0.18.0"
 strum_macros = "0.18.0"
 futures = "0.3.4"
-async-std = "1.6.2"
-#birdnet-binary = { path = "../birdnet-binary" }
+async-std = { version = "1.6.2", features = ["unstable"] }
+byteorder = "1.3.4"
+rand = "0.7.3"
+async-trait = "0.1.35"
+birdnet_code = { path = "../birdnet_code" }
+birdnet_derive = { path = "../birdnet_derive" }
