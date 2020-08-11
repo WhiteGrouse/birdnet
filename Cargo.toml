@@ -1,5 +1,6 @@
 [workspace]
 members = [
-    "birdnet-binary",
+    "birdnet_code",
+    "birdnet_derive",
     "birdnet",
 ]

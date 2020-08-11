@@ -9,4 +9,4 @@ strum = "0.18.0"
 strum_macros = "0.18.0"
 futures = "0.3.4"
 async-std = "1.6.2"
-birdnet-binary = { path = "../birdnet-binary" }
+#birdnet-binary = { path = "../birdnet-binary" }
