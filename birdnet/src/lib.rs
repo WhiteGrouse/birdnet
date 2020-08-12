@@ -10,4 +10,6 @@ pub mod socket;
 mod abort_when_drop;
 pub use abort_when_drop::AbortWhenDrop;
 pub mod protocol;
+mod settings;
+pub use settings::PeerSettings;
 pub mod service;

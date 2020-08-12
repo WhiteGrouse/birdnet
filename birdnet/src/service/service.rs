@@ -6,7 +6,7 @@ use std::any::Any;
 use std::io::{self, Error, ErrorKind};
 use std::sync::atomic::{AtomicBool, Ordering};
 
-pub trait ServiceImpl {
+pub trait ServiceImpl: Send + Sync {
   fn launch_tasks(&self) -> Vec<AbortWhenDrop>;
   fn message(&self, data: Box<dyn Any>);
   fn shutdown(&mut self);
