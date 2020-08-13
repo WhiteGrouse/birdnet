@@ -52,6 +52,10 @@ impl Service {
 pub struct ServiceManager(RwLock<HashMap<String, Arc<Service>>>);
 
 impl ServiceManager {
+  pub fn new() -> ServiceManager {
+    ServiceManager(RwLock::new(HashMap::new()))
+  }
+
   pub fn register(&self, id: String, service: Service) -> Result<(), (String, Service)> {
     if service.is_disposed() {
       return Err((id, service));

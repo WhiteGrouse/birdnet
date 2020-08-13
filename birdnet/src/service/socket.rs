@@ -1,10 +1,9 @@
-use crate::PeerSettings;
+use crate::{PeerSettings, AbortWhenDrop};
 use crate::socket::Socket;
 use crate::service::{ServiceImpl, ServiceManager};
 use crate::service::ping::MessageForPing;
 use crate::service::open_connection::MessageForOpenConnection;
 use crate::service::connection::MessageForConnection;
-use crate::AbortWhenDrop;
 use async_std::task;
 use async_std::sync::Arc;
 use async_std::net::SocketAddr;
@@ -24,13 +23,13 @@ impl SocketService {
   async fn recv_loop(settings: Arc<PeerSettings>, manager: Arc<ServiceManager>, socket: Arc<dyn Socket>) {
     loop {
       match socket.recv().await {
-        Ok((addr, buff)) => Self::handle(&settings, &manager, addr, buff).await,
+        Ok((addr, buff)) => Self::handle(&settings, &manager, addr, buff),
         Err(_) => break,
       }
     }
   }
 
-  async fn handle(settings: &PeerSettings, manager: &ServiceManager, addr: SocketAddr, buff: Box<[u8]>) {
+  fn handle(settings: &PeerSettings, manager: &ServiceManager, addr: SocketAddr, buff: Box<[u8]>) {
     if buff.len() == 0 {
       return;
     }
