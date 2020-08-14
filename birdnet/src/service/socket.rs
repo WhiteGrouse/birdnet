@@ -8,6 +8,7 @@ use async_std::task;
 use async_std::sync::Arc;
 use async_std::net::SocketAddr;
 use std::any::Any;
+use std::io::Result;
 
 pub struct SocketService {
   settings: Arc<PeerSettings>,
@@ -104,11 +105,12 @@ impl ServiceImpl for SocketService {
     vec![ AbortWhenDrop::spawn(Self::recv_loop(self.settings.clone(), self.manager.clone(), self.socket.clone())) ]
   }
 
-  fn message(&self, data: Box<dyn Any>) {
+  fn message(&self, data: Box<dyn Any>) -> Result<()> {
     if let Ok(boxed) = data.downcast::<(SocketAddr, Vec<u8>)>() {
       let (addr, bytes) = boxed.as_ref();
       let _ = task::block_on(self.socket.send(*addr, bytes));
     }
+    Ok(())
   }
 
   fn shutdown(&mut self) {}

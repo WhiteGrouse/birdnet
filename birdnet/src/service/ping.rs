@@ -14,13 +14,13 @@ use std::time::Duration;
 pub enum MessageForPing {
   RecvPing(SocketAddr, Box<[u8]>),
   RecvPong(SocketAddr, Box<[u8]>),
-  Ping(SocketAddr, Sender<Result<UnconnectedPong>>),
+  Ping(SocketAddr, Sender<UnconnectedPong>),
 }
 
 pub struct PingService {
   settings: Arc<PeerSettings>,
   manager: Arc<ServiceManager>,
-  requested: Mutex<HashMap<SocketAddr, Sender<Result<UnconnectedPong>>>>,
+  requested: Mutex<HashMap<SocketAddr, Sender<UnconnectedPong>>>,
 }
 
 pub struct PingResult {
@@ -42,7 +42,7 @@ impl ServiceImpl for PingService {
     Vec::new()
   }
 
-  fn message(&self, data: Box<dyn Any>) {
+  fn message(&self, data: Box<dyn Any>) -> Result<()> {
     if let Ok(message) = data.downcast::<MessageForPing>() {
       match *message {
         MessageForPing::RecvPing(addr, buff) => {
@@ -61,14 +61,14 @@ impl ServiceImpl for PingService {
           if let Ok(pong) = UnconnectedPong::decode(&mut Cursor::new(&buff)) {
             let mut requested = task::block_on(self.requested.lock());
             if let Some(sender) = requested.remove(&addr) {
-              task::block_on(sender.send(Ok(pong)));
+              task::block_on(sender.send(pong));
             }
           }
         },
         MessageForPing::Ping(addr, sender) => {
           let mut requested = task::block_on(self.requested.lock());
           if requested.contains_key(&addr) {
-            task::block_on(sender.send(Err(Error::new(ErrorKind::Other, "Already requested"))));
+            return Err(Error::new(ErrorKind::Other, "Already requested"));
           }
           else {
             let buf_ping = UnconnectedPing {
@@ -82,6 +82,7 @@ impl ServiceImpl for PingService {
         },
       }
     }
+    Ok(())
   }
 
   fn shutdown(&mut self) {

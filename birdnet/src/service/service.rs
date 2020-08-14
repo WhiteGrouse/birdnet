@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 pub trait ServiceImpl: Send + Sync {
   fn launch_tasks(&self) -> Vec<AbortWhenDrop>;
-  fn message(&self, data: Box<dyn Any>);
+  fn message(&self, data: Box<dyn Any>) -> io::Result<()>;
   fn shutdown(&mut self);
 }
 
@@ -26,9 +26,9 @@ impl Service {
     Service { tasks, service_impl, disposed }
   }
 
-  pub fn message(&self, data: Box<dyn Any>) {
+  pub fn message(&self, data: Box<dyn Any>) -> io::Result<()> {
     let service_impl = task::block_on(self.service_impl.read());
-    service_impl.message(data);
+    service_impl.message(data)
   }
 
   pub fn is_disposed(&self) -> bool {
@@ -71,10 +71,7 @@ impl ServiceManager {
   pub fn send(&self, id: &str, data: Box<dyn Any>) -> io::Result<()> {
     let services = task::block_on(self.0.read());
     match services.get(id) {
-      Some(service) => {
-        service.message(data);
-        Ok(())
-      },
+      Some(service) => service.message(data),
       None => Err(Error::new(ErrorKind::NotFound, format!("service({}) not found", id)))
     }
   }
