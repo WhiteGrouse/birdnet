@@ -54,7 +54,7 @@ impl ServiceImpl for PingService {
               offline_magic: OFFLINE_MAGIC.clone(),
               information: RakString(self.settings.get_information()),
             }.to_buffer().unwrap().into_inner();
-            let _ = self.manager.send("socket", Box::new((addr, buf_pong)));
+            return Ok(Box::new(vec![(addr, buf_pong)]));
           }
         },
         MessageForPing::RecvPong(addr, buff) => {
@@ -76,8 +76,8 @@ impl ServiceImpl for PingService {
               ping_time: self.settings.get_ping_time(),
               offline_magic: OFFLINE_MAGIC.clone(),
             }.to_buffer().unwrap().into_inner();
-            let _ = self.manager.send("socket", Box::new((addr, buf_ping)));
             let _ = requested.insert(addr, sender);
+            return Ok(Box::new(vec![(addr, buf_ping)]));
           }
         },
       }
