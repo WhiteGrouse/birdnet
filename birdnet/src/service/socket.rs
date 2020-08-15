@@ -105,12 +105,12 @@ impl ServiceImpl for SocketService {
     vec![ AbortWhenDrop::spawn(Self::recv_loop(self.settings.clone(), self.manager.clone(), self.socket.clone())) ]
   }
 
-  fn message(&self, data: Box<dyn Any>) -> Result<()> {
+  fn message(&self, data: Box<dyn Any>) -> Result<Box<dyn Any>> {
     if let Ok(boxed) = data.downcast::<(SocketAddr, Vec<u8>)>() {
       let (addr, bytes) = boxed.as_ref();
       let _ = task::block_on(self.socket.send(*addr, bytes));
     }
-    Ok(())
+    Ok(Box::new(()))
   }
 
   fn shutdown(&mut self) {}

@@ -42,7 +42,7 @@ impl ServiceImpl for PingService {
     Vec::new()
   }
 
-  fn message(&self, data: Box<dyn Any>) -> Result<()> {
+  fn message(&self, data: Box<dyn Any>) -> Result<Box<dyn Any>> {
     if let Ok(message) = data.downcast::<MessageForPing>() {
       match *message {
         MessageForPing::RecvPing(addr, buff) => {
@@ -82,7 +82,7 @@ impl ServiceImpl for PingService {
         },
       }
     }
-    Ok(())
+    Ok(Box::new(()))
   }
 
   fn shutdown(&mut self) {
