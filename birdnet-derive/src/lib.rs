@@ -21,17 +21,15 @@ pub fn codable_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream
   };
 
   let impl_codable = quote! {
-    impl birdnet_code::Codable for #derive_target {
-      fn encode<W: std::io::Write + std::io::Seek>(&self, buffer: &mut W) -> std::io::Result<()> {
-        use byteorder::{WriteBytesExt, BigEndian, LittleEndian};
-
+    impl crate::codable::Codable for #derive_target {
+      fn encode(&self, mut buffer: &mut dyn bytes::BufMut) -> crate::codable::Result<()> {
+        use crate::codable::{Codable, WriteBytesExt};
         #write_fields
         Ok(())
       }
 
-      fn decode<R: std::io::Read + std::io::Seek>(buffer: &mut R) -> std::io::Result<Self> {
-        use byteorder::{ReadBytesExt, BigEndian, LittleEndian};
-
+      fn decode(mut buffer: &mut dyn bytes::Buf) -> crate::codable::Result<Self> {
+        use crate::codable::{Codable, ReadBytesExt};
         #read_fields
         Ok(#read_ret)
       }
@@ -156,14 +154,13 @@ fn get_rw_fn(ident: &str, is_field: bool, tyident: &Ident, attrs: &[Attribute]) 
         }
       }
     }
-    let write_name = if u24 { "write_u24".to_string() } else { format!("write_{}", tyident) };
-    let read_name = if u24 { "read_u24".to_string() } else { format!("read_{}", tyident) };
-    let order = if be { "BigEndian" } else { "LittleEndian" };
+    let order = if be { "be" } else { "le" };
+    let write_name = if u24 { format!("write_u24_{}", order) } else { format!("write_{}_{}", tyident, order) };
+    let read_name = if u24 { format!("read_u24_{}", order) } else { format!("read_{}_{}", tyident, order) };
     let write_fn = Ident::new(&write_name, Span::call_site());
     let read_fn = Ident::new(&read_name, Span::call_site());
-    let order = Ident::new(&order, Span::call_site());
-    let write = quote!(buffer.#write_fn::<#order>(#target)?);
-    let read = quote!(buffer.#read_fn::<#order>()?);
+    let write = quote!(buffer.#write_fn(#target)?);
+    let read = quote!(buffer.#read_fn()?);
     (read, write)
   }
   else {
@@ -219,3 +216,4 @@ fn type_array(let_ident: &Ident, ident: &str, array: &TypeArray, attrs: &[Attrib
     _ => Err(syn::Error::new(Span::call_site(), "Containing field unsupported type")),
   }
 }
+
